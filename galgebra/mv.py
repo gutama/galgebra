@@ -1480,6 +1480,152 @@ class Mv(printer.GaPrintable):
             return self.i_grade
         return -self.grades[-1]
 
+    # ## Kingdon-inspired methods start ###
+    def rp(self, A: 'Mv') -> 'Mv':
+        """
+        Regressive product (meet) of two multivectors.
+
+        The regressive product is the dual of the outer product of the duals:
+        A ∨ B = undual(dual(A) ^ dual(B))
+
+        This is also called the "meet" operation in geometric algebra.
+        """
+        if not isinstance(A, Mv):
+            A = self.Ga.mv(A)
+
+        if self.Ga != A.Ga:
+            raise ValueError('In regressive product operation Mv arguments are not from same geometric algebra')
+
+        # Regressive product: undual(dual(self) ^ dual(A))
+        return (self.dual() ^ A.dual()).undual()
+
+    def __and__(self, A):  # regressive product (&)
+        """Regressive product operator: self & A"""
+        if isinstance(A, dop._BaseDop):
+            return NotImplemented
+
+        if not isinstance(A, Mv):
+            A = self.Ga.mv(A)
+
+        return self.rp(A)
+
+    def __rand__(self, A):  # regressive product (&)
+        """Right regressive product operator: A & self"""
+        if isinstance(A, dop._BaseDop):
+            return NotImplemented
+
+        if not isinstance(A, Mv):
+            A = self.Ga.mv(A)
+
+        return A.rp(self)
+
+    def normalized(self) -> 'Mv':
+        """
+        Returns the normalized (unit) multivector.
+
+        Divides the multivector by its norm to produce a unit multivector.
+        Raises an error if the norm is zero.
+        """
+        n = self.norm()
+        if n == S.Zero:
+            raise ValueError('Cannot normalize a multivector with zero norm')
+        return self / n
+
+    def sqrt(self) -> 'Mv':
+        """
+        Returns the square root of the multivector.
+
+        Only works if the multivector is a scalar or if the multivector square is a scalar.
+        Uses similar logic to the exp() method.
+        """
+        # Special case for scalars
+        if self.is_scalar():
+            from sympy import sqrt as sympy_sqrt
+            return self.Ga.mv(sympy_sqrt(self.obj))
+
+        self_sq = self * self
+        if not self_sq.is_scalar():
+            raise ValueError('Square root only implemented for multivectors whose square is a scalar')
+
+        # For a multivector A where A^2 = a (scalar)
+        # sqrt(A) = (A + sqrt(a)) / sqrt(2(a + sqrt(a)))
+        # This works for both positive and negative scalar squares
+
+        a = self_sq.scalar()
+        sqrt_a = sqrt(a)
+
+        numerator = self + sqrt_a
+        denominator = sqrt(2 * (a + sqrt_a))
+
+        return numerator / denominator
+
+    def sandwich(self, A: 'Mv') -> 'Mv':
+        """
+        Sandwich product: self * A * ~self
+
+        Also known as conjugation of A by self.
+        Commonly used for rotations and reflections.
+
+        Parameters
+        ----------
+        A : Mv
+            The multivector to be conjugated
+
+        Returns
+        -------
+        Mv
+            The result of self * A * self.rev()
+        """
+        if not isinstance(A, Mv):
+            A = self.Ga.mv(A)
+
+        if self.Ga != A.Ga:
+            raise ValueError('In sandwich product operation Mv arguments are not from same geometric algebra')
+
+        return self * A * self.rev()
+
+    # Aliases for kingdon API compatibility
+    def op(self, A: 'Mv') -> 'Mv':
+        """Alias for outer/wedge product (^). Equivalent to self ^ A"""
+        return self ^ A
+
+    def ip(self, A: 'Mv') -> 'Mv':
+        """Alias for inner/dot product (|). Equivalent to self | A"""
+        return self | A
+
+    def gp(self, A: 'Mv') -> 'Mv':
+        """Alias for geometric product (*). Equivalent to self * A"""
+        return self * A
+
+    def lc(self, A: 'Mv') -> 'Mv':
+        """Alias for left contraction (<). Equivalent to self < A"""
+        return self < A
+
+    def rc(self, A: 'Mv') -> 'Mv':
+        """Alias for right contraction (>). Equivalent to self > A"""
+        return self > A
+
+    def cp(self, A: 'Mv') -> 'Mv':
+        """Alias for commutator product (>>). Equivalent to self >> A"""
+        return self >> A
+
+    def acp(self, A: 'Mv') -> 'Mv':
+        """Alias for anti-commutator product (<<). Equivalent to self << A"""
+        return self << A
+
+    def reverse(self) -> 'Mv':
+        """Alias for rev(). Returns the reverse of the multivector."""
+        return self.rev()
+
+    def involute(self) -> 'Mv':
+        """Alias for g_invol(). Returns the grade involute of the multivector."""
+        return self.g_invol()
+
+    def conjugate(self) -> 'Mv':
+        """Alias for ccon(). Returns the Clifford conjugate of the multivector."""
+        return self.ccon()
+    # ## Kingdon-inspired methods end ###
+
     def _eval_derivative_n_times(self, x, n) -> 'Mv':
         for i in range(n):
             self = self.Ga.pDiff(self, x)
@@ -2272,3 +2418,131 @@ def sp(A: Mv, B: Mv, switch='') -> Expr:
         raise ValueError("Left factor of sp must be a multivector")
     return A.sp(B, switch)
 # ## GSG code ends ###
+
+
+# ## Kingdon-inspired standalone functions start ###
+def rp(A: Mv, B: Mv) -> Mv:
+    """
+    Regressive product (meet) of two multivectors.
+
+    Equivalent to :meth:`Mv.rp`.
+
+    The regressive product is the dual of the outer product of the duals:
+    A ∨ B = undual(dual(A) ^ dual(B))
+
+    This is also called the "meet" operation in geometric algebra.
+
+    Parameters
+    ----------
+    A : Mv
+        First multivector
+    B : Mv
+        Second multivector
+
+    Returns
+    -------
+    Mv
+        The regressive product of A and B
+    """
+    if not isinstance(A, Mv):
+        raise ValueError('A = ' + str(A) + ' not a multivector in rp(A, B).')
+    return A.rp(B)
+
+
+def normalized(A: Mv) -> Mv:
+    """
+    Returns the normalized (unit) multivector.
+
+    Equivalent to :meth:`Mv.normalized`.
+
+    Divides the multivector by its norm to produce a unit multivector.
+
+    Parameters
+    ----------
+    A : Mv
+        Multivector to normalize
+
+    Returns
+    -------
+    Mv
+        The normalized multivector
+
+    Raises
+    ------
+    ValueError
+        If the norm is zero
+    """
+    if not isinstance(A, Mv):
+        raise ValueError('A = ' + str(A) + ' not a multivector in normalized(A).')
+    return A.normalized()
+
+
+def sandwich(A: Mv, B: Mv) -> Mv:
+    """
+    Sandwich product: A * B * ~A
+
+    Equivalent to :meth:`Mv.sandwich`.
+
+    Also known as conjugation of B by A.
+    Commonly used for rotations and reflections.
+
+    Parameters
+    ----------
+    A : Mv
+        The multivector to sandwich with
+    B : Mv
+        The multivector to be conjugated
+
+    Returns
+    -------
+    Mv
+        The result of A * B * A.rev()
+    """
+    if not isinstance(A, Mv):
+        raise ValueError('A = ' + str(A) + ' not a multivector in sandwich(A, B).')
+    return A.sandwich(B)
+
+
+# Alias functions for kingdon API compatibility
+def op(A: Mv, B: Mv) -> Mv:
+    """Outer/wedge product. Equivalent to A ^ B"""
+    if not isinstance(A, Mv):
+        raise ValueError('A = ' + str(A) + ' not a multivector in op(A, B).')
+    return A.op(B)
+
+
+def gp(A: Mv, B: Mv) -> Mv:
+    """Geometric product. Equivalent to A * B"""
+    if not isinstance(A, Mv):
+        raise ValueError('A = ' + str(A) + ' not a multivector in gp(A, B).')
+    return A.gp(B)
+
+
+def lc(A: Mv, B: Mv) -> Mv:
+    """Left contraction. Equivalent to A < B"""
+    if not isinstance(A, Mv):
+        raise ValueError('A = ' + str(A) + ' not a multivector in lc(A, B).')
+    return A.lc(B)
+
+
+def rc(A: Mv, B: Mv) -> Mv:
+    """Right contraction. Equivalent to A > B"""
+    if not isinstance(A, Mv):
+        raise ValueError('A = ' + str(A) + ' not a multivector in rc(A, B).')
+    return A.rc(B)
+
+
+def reverse(A: Mv) -> Mv:
+    """Alias for rev(). Returns the reverse of the multivector."""
+    return rev(A)
+
+
+def involute(A: Mv) -> Mv:
+    """Alias for g_invol(). Returns the grade involute of the multivector."""
+    return g_invol(A)
+
+
+def conjugate(A: Mv) -> Mv:
+    """Alias for ccon(). Returns the Clifford conjugate of the multivector."""
+    return ccon(A)
+# ## Kingdon-inspired standalone functions end ###

@@ -218,6 +218,15 @@ This could take more than 10 minutes, please be patient.
 Migration Guide
 ----------------
 
+### Migrating from Kingdon
+
+If you are coming from the [kingdon](https://github.com/tBuLi/kingdon) library, please check out the [**Kingdon Migration Guide**](doc/kingdon_migration_guide.md). GAlgebra now includes several kingdon-inspired features:
+- Regressive product (meet) with `&` operator
+- Normalized multivectors with `.normalized()` method
+- Square root operation with `.sqrt()` method
+- Sandwich product with `.sandwich()` method
+- API compatibility aliases (`.gp()`, `.op()`, `.ip()`, `.reverse()`, etc.)
+
 ### Migrating guide for readers of LAGA&VAGC
 
 Readers of [Linear and Geometric Algebra](http://www.faculty.luther.edu/~macdonal/laga/index.html) and [Vector and Geometric Calculus](http://www.faculty.luther.edu/~macdonal/vagc/index.html) might be guided by [GAlgebra Primer](http://www.faculty.luther.edu/~macdonal/GAlgebraPrimer.pdf) (version November 29, 2022, accessed May, 2024) to download [GAfiles.zip](http://www.faculty.luther.edu/~macdonal/GAfiles.zip) and copy `gprinter.py`, `lt.py`, `mv.py`, and `GAlgebraInit.py`¸ into where GAlgebra is installed.
