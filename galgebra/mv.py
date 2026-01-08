@@ -1540,8 +1540,7 @@ class Mv(printer.GaPrintable):
         """
         # Special case for scalars
         if self.is_scalar():
-            from sympy import sqrt as sympy_sqrt
-            return self.Ga.mv(sympy_sqrt(self.obj))
+            return self.Ga.mv(sqrt(self.obj))
 
         self_sq = self * self
         if not self_sq.is_scalar():
@@ -2509,6 +2508,13 @@ def op(A: Mv, B: Mv) -> Mv:
     if not isinstance(A, Mv):
         raise ValueError('A = ' + str(A) + ' not a multivector in op(A, B).')
     return A.op(B)
+
+
+def ip(A: Mv, B: Mv) -> Mv:
+    """Inner/dot product. Equivalent to A | B"""
+    if not isinstance(A, Mv):
+        raise ValueError('A = ' + str(A) + ' not a multivector in ip(A, B).')
+    return A.ip(B)
 
 
 def gp(A: Mv, B: Mv) -> Mv:

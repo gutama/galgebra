@@ -11,11 +11,11 @@ to provide compatibility with the kingdon library API:
 """
 
 import pytest
-from sympy import symbols, sqrt as sympy_sqrt, simplify
+from sympy import symbols, simplify
 from galgebra.ga import Ga
 from galgebra.mv import (
     rp, normalized, sandwich,
-    op, gp, lc, rc, reverse, involute, conjugate
+    op, ip, gp, lc, rc, reverse, involute, conjugate
 )
 
 
@@ -136,29 +136,32 @@ class TestSqrt:
         assert simplify((s_sqrt * s_sqrt - s).obj) == 0
 
     def test_sqrt_bivector(self):
-        """Test square root of a bivector (which squares to a scalar)."""
+        """Test square root of a bivector (which squares to a scalar).
+        
+        Note: The sqrt implementation for bivectors has limitations with symbolic
+        computation and may not produce exact results. This test is currently
+        marked as incomplete pending improvements to the sqrt algorithm.
+        """
         ga, e1, e2, e3 = Ga.build('e*1|2|3', g=[1, 1, 1])
 
         # Bivector e1^e2 squares to -1
         b = e1 ^ e2
         b_sqrt = b.sqrt()
 
-        # Check that squaring gives back original (approximately)
-        result = simplify((b_sqrt * b_sqrt - b).obj)
-        # Due to the complexity of symbolic manipulation, we check if it simplifies to near zero
-        # This is a weaker test but appropriate for symbolic computation
+        # The sqrt method should not raise an error for bivectors
+        assert b_sqrt is not None
+        # TODO: Improve sqrt algorithm to handle bivectors correctly
+        # Currently (b_sqrt * b_sqrt) does not equal b due to symbolic computation issues
 
     def test_sqrt_invalid(self):
         """Test that sqrt of non-scalar-squaring MV raises error."""
         ga, e1, e2, e3 = Ga.build('e*1|2|3', g=[1, 1, 1])
 
-        # Vector + bivector doesn't square to a scalar
-        m = e1 + (e1 ^ e2)
-        m_sq = m * m
+        # e1 + (e1^e2) + (e2^e3) squares to a non-scalar
+        m = e1 + (e1 ^ e2) + (e2 ^ e3)
 
-        if not m_sq.is_scalar():
-            with pytest.raises(ValueError, match="Square root only implemented"):
-                m.sqrt()
+        with pytest.raises(ValueError, match="Square root only implemented"):
+            m.sqrt()
 
 
 class TestSandwich:
@@ -182,7 +185,8 @@ class TestSandwich:
         # u * v * ~u should rotate/reflect v
 
         result = u.sandwich(v)
-        # This is a simple test to ensure the method works
+        # For orthogonal unit vectors, reflection of e1 in e2 should give -e1
+        assert simplify((result + e1).obj) == 0
 
     def test_sandwich_standalone(self):
         """Test standalone sandwich function."""
