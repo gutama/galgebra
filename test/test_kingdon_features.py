@@ -137,7 +137,7 @@ class TestSqrt:
 
     def test_sqrt_bivector(self):
         """Test square root of a bivector (which squares to a scalar).
-        
+
         Note: The sqrt implementation for bivectors has limitations with symbolic
         computation and may not produce exact results. This test is currently
         marked as incomplete pending improvements to the sqrt algorithm.
